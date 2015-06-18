@@ -772,6 +772,8 @@ static int dkr_pull_verify_digest(const char* raw_manifest, size_t size) {
         d = gcry_md_read(context, GCRY_MD_SHA256);
         gcry_md_close(context);
 
+        printf("Ay:\n%s\n", d);
+
         printf("Manifest payload digest:\n%s\n", hexmem(d, gcry_md_get_algo_dlen(GCRY_MD_SHA256)));
 
         return 0;
