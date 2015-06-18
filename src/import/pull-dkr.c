@@ -778,7 +778,6 @@ static int dkr_pull_verify_digest(const char* raw_manifest, const char* referenc
                 return -EINVAL;
 
         gcry_md_close(context);
-
         digest = hexmem(d, gcry_md_get_algo_dlen(GCRY_MD_SHA256));
         if (!digest)
                 return -ENOMEM;        
