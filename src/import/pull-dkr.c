@@ -756,7 +756,7 @@ static int dkr_pull_verify_digest(const char* raw_manifest, size_t size) {
         if (!pivot)
                 return -EINVAL;
 
-        if ((pivot - copy) + 3 > copied)
+        if ((size_t)(pivot - copy) + 3 > copied)
                 return -EINVAL;
 
         *pivot++ = '\n';
@@ -764,6 +764,8 @@ static int dkr_pull_verify_digest(const char* raw_manifest, size_t size) {
         *pivot = '\0';
 
         printf("Manifest payload:\n%s\n", copy);
+
+        return 0;
 }
 
 static void dkr_pull_job_on_finished_v2(PullJob *j) {
