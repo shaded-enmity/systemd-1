@@ -735,6 +735,36 @@ static int dkr_pull_job_on_header(PullJob *j, const char *header, size_t sz)  {
         return 0;
 }
 
+static int dkr_pull_verify_digest(const char* raw_manifest, size_t size) {
+        const char *signatures = NULL, pivot = NULL;
+        _cleanup_free_ char *copy = NULL;
+        size_t copied = 0;
+
+        assert(raw_manifest);
+
+        signatures = strstr(raw_manifest, "\"signatures\":");
+        if (!signatures)
+                return -EINVAL;
+
+        copied = (signatures - raw_manifest) + 3;
+        copy = strndup(raw_manifest, copied);
+        if (!copy)
+                return -ENOMEM;
+
+        pivot = strrchr(copy, ',');
+        if (!pivot)
+                return -EINVAL;
+
+        if ((pivot - copy) + 3 > copied)
+                return -EINVAL;
+
+        *pivot++ = '\n';
+        *pivot++ = '}';
+        *pivot = '\0';
+
+        printf("Manifest payload:\n%s\n", copy);
+}
+
 static void dkr_pull_job_on_finished_v2(PullJob *j) {
         DkrPull *i;
         int r;
