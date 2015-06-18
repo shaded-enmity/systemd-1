@@ -741,7 +741,7 @@ static int dkr_pull_verify_digest(const char* raw_manifest, size_t size) {
         _cleanup_free_ char *copy = NULL;
         size_t copied = 0;
         uint8_t *d;
-        struct gcry_md_handle context;
+        struct gcry_md_hd_t *context;
 
         assert(raw_manifest);
 
@@ -765,7 +765,7 @@ static int dkr_pull_verify_digest(const char* raw_manifest, size_t size) {
         *pivot++ = '}';
         *pivot = '\0';
 
-        printf("Manifest paylaod:\n%s\m", copy);
+        printf("Manifest paylaod:\n%s\n", copy);
 
         gcry_md_open(&context, GCRY_MD_SHA256, 0);
         gcry_md_write(context, copy, strlen(copy));
