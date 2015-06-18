@@ -741,7 +741,7 @@ static int dkr_pull_verify_digest(const char* raw_manifest, size_t size) {
         _cleanup_free_ char *copy = NULL;
         size_t copied = 0;
         uint8_t *d;
-        struct gcry_md_hd_t *context;
+        gcry_md_hd_t *context;
 
         assert(raw_manifest);
 
