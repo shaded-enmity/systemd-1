@@ -736,7 +736,8 @@ static int dkr_pull_job_on_header(PullJob *j, const char *header, size_t sz)  {
 }
 
 static int dkr_pull_verify_digest(const char* raw_manifest, size_t size) {
-        const char *signatures = NULL, pivot = NULL;
+        const char *signatures = NULL;
+        char *pivot = NULL;
         _cleanup_free_ char *copy = NULL;
         size_t copied = 0;
 
