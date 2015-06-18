@@ -743,6 +743,7 @@ static int dkr_pull_verify_digest(const char* raw_manifest, const char* referenc
         uint8_t *d;
         gcry_md_hd_t context;
         gcry_error_t e;
+        int r;
 
         assert(raw_manifest);
         assert(reference);
@@ -774,15 +775,22 @@ static int dkr_pull_verify_digest(const char* raw_manifest, const char* referenc
         gcry_md_write(context, copy, strlen(copy));
 
         d = gcry_md_read(context, GCRY_MD_SHA256);
-        if (!d)
-                return -EINVAL;
+        if (!d) {
+                r = -EINVAL;
+                goto out;       
+        }
 
-        //gcry_md_close(context);
         digest = hexmem(d, gcry_md_get_algo_dlen(GCRY_MD_SHA256));
-        if (!digest)
-                return -ENOMEM;        
+        if (!digest) {
+                r = -ENOMEM;
+                goto out;
+        }
 
+        gcry_md_close(context);
         return streq(strjoina("sha256:", digest), reference) ? 0 : -EINVAL;
+out:
+        gcry_md_close(context);
+        return r
 }
 
 static void dkr_pull_job_on_finished_v2(PullJob *j) {
