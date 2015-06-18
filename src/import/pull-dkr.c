@@ -735,15 +735,17 @@ static int dkr_pull_job_on_header(PullJob *j, const char *header, size_t sz)  {
         return 0;
 }
 
-static int dkr_pull_verify_digest(const char* raw_manifest, size_t size) {
+static int dkr_pull_verify_digest(const char* raw_manifest, const char* reference) {
         const char *signatures = NULL;
         char *pivot = NULL;
-        _cleanup_free_ char *copy = NULL;
+        _cleanup_free_ char *copy = NULL, *digest = NULL;
         size_t copied = 0;
         uint8_t *d;
         gcry_md_hd_t context;
+        gcry_error_t e;
 
         assert(raw_manifest);
+        assert(reference);
 
         signatures = strstr(raw_manifest, "\"signatures\":");
         if (!signatures)
@@ -765,18 +767,27 @@ static int dkr_pull_verify_digest(const char* raw_manifest, size_t size) {
         *pivot++ = '}';
         *pivot = '\0';
 
-        printf("Manifest paylaod(%zu):\n%s\n", strlen(copy), copy);
+        e = gcry_md_open(&context, GCRY_MD_SHA256, 0);
+        if (e != 0)
+                return -EIO;
 
-        gcry_md_open(&context, GCRY_MD_SHA256, 0);
-        gcry_md_write(context, copy, strlen(copy));
+        e = gcry_md_write(context, copy, strlen(copy));
+        if (e != 0)
+                return -EINVAL;
+
         d = gcry_md_read(context, GCRY_MD_SHA256);
+        if (!d)
+                return -EINVAL;
 
-        printf("Ay:\n%s\n", d);
-        printf("Manifest payload digest:\n%s\n", hexmem(d, gcry_md_get_algo_dlen(GCRY_MD_SHA256)));
+        e = gcry_md_close(context);
+        if (e != 0)
+                return -EINVAL;
 
-        gcry_md_close(context);
+        digest = hexmem(d, gcry_md_get_algo_dlen(GCRY_MD_SHA256));
+        if (!digest)
+                return -ENOMEM;        
 
-        return 0;
+        return streq(strjoina("sha256:", digest), reference) ? 0 : -EINVAL;
 }
 
 static void dkr_pull_job_on_finished_v2(PullJob *j) {
@@ -901,7 +912,11 @@ static void dkr_pull_job_on_finished_v2(PullJob *j) {
                 size_t allocated = 0, size = 0;
                 char *path = NULL, **k = NULL;
 
-                dkr_pull_verify_digest(j->payload, j->payload_size);
+                r = dkr_pull_verify_digest(j->payload, i->response_digest);
+                if (r < 0) {
+                        log_error("Digest verification failed!");
+                        goto finish;
+                }                     
 
                 r = json_parse((const char *)j->payload, &doc);
                 if (r < 0) {
