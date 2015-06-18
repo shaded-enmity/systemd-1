@@ -915,7 +915,7 @@ static void dkr_pull_job_on_finished_v2(PullJob *j) {
                 size_t allocated = 0, size = 0;
                 char *path = NULL, **k = NULL;
 
-                r = dkr_pull_verify_digest(j->payload, i->response_digest);
+                r = dkr_pull_verify_digest((const char *)j->payload, i->response_digest);
                 if (r < 0) {
                         log_error("Digest verification failed!");
                         goto finish;
