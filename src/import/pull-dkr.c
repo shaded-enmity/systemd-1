@@ -771,17 +771,13 @@ static int dkr_pull_verify_digest(const char* raw_manifest, const char* referenc
         if (e != 0)
                 return -EIO;
 
-        e = gcry_md_write(context, copy, strlen(copy));
-        if (e != 0)
-                return -EINVAL;
+        gcry_md_write(context, copy, strlen(copy));
 
         d = gcry_md_read(context, GCRY_MD_SHA256);
         if (!d)
                 return -EINVAL;
 
-        e = gcry_md_close(context);
-        if (e != 0)
-                return -EINVAL;
+        gcry_md_close(context);
 
         digest = hexmem(d, gcry_md_get_algo_dlen(GCRY_MD_SHA256));
         if (!digest)
