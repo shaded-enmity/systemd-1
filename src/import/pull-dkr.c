@@ -738,9 +738,9 @@ static int dkr_pull_job_on_header(PullJob *j, const char *header, size_t sz)  {
 static int dkr_pull_verify_digest(const char* raw_manifest, const char* reference) {
         const char *signatures = NULL;
         char *pivot = NULL;
+        uint8_t *d = NULL;
         _cleanup_free_ char *copy = NULL, *digest = NULL;
         size_t copied = 0;
-        uint8_t *d;
         gcry_md_hd_t context;
         gcry_error_t e;
         int r;
@@ -761,7 +761,7 @@ static int dkr_pull_verify_digest(const char* raw_manifest, const char* referenc
         if (!pivot)
                 return -EINVAL;
 
-        if ((size_t)(pivot - copy) + 3 > copied)
+        if ((size_t)(pivot - copy) + 3 >= copied)
                 return -EINVAL;
 
         *pivot++ = '\n';
@@ -773,7 +773,6 @@ static int dkr_pull_verify_digest(const char* raw_manifest, const char* referenc
                 return -EIO;
 
         gcry_md_write(context, copy, strlen(copy));
-
         d = gcry_md_read(context, GCRY_MD_SHA256);
         if (!d) {
                 r = -EINVAL;
