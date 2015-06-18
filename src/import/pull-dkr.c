@@ -765,6 +765,8 @@ static int dkr_pull_verify_digest(const char* raw_manifest, size_t size) {
         *pivot++ = '}';
         *pivot = '\0';
 
+        printf("Manifest paylaod:\n%s\m", copy);
+
         gcry_md_open(&context, GCRY_MD_SHA256, 0);
         gcry_md_write(context, copy, strlen(copy));
         d = gcry_md_read(context, GCRY_MD_SHA256);
