@@ -790,7 +790,7 @@ static int dkr_pull_verify_digest(const char* raw_manifest, const char* referenc
         return streq(strjoina("sha256:", digest), reference) ? 0 : -EINVAL;
 out:
         gcry_md_close(context);
-        return r
+        return r;
 }
 
 static void dkr_pull_job_on_finished_v2(PullJob *j) {
